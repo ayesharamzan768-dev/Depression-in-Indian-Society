@@ -1,55 +1,41 @@
-"""
-filters.py - Data loading, cleaning, and filtering functions
-EDA Dashboard Project - Reddit Depression in Indian Society
-"""
-
 import pandas as pd
-import numpy as np
 
-DATA_PATH = "data/reddit_depression_india.csv"
+def load_and_clean_data(filepath):
+    """
+    Loads the malaria dataset and ensures all column names and data types are clean.
+    """
+    try:
+        df = pd.read_csv(filepath)
+        # Strip any accidental whitespaces from column names
+        df.columns = df.columns.str.strip()
+        
+        # Ensure numerical types are correct
+        df = df.astype(int)
+        df = df.astype(int)
+        df = df.astype(int)
+        df = df.astype(int)
+        df = df.astype(int)
+        
+        return df
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        return pd.DataFrame()
 
-
-def load_data():
-    """Load and clean the dataset."""
-    df = pd.read_csv(DATA_PATH)
-    df["created_utc"] = pd.to_datetime(df["created_utc"])
-    df["created_date"] = pd.to_datetime(df["created_date"])
-    df["flair"] = df["flair"].fillna("Unflaired")
-    df["post_length"] = df["post_length"].clip(lower=0)
-    df["score"] = df["score"].clip(lower=0)
+def apply_dashboard_filters(df, selected_provinces, year_range, rainfall_range):
+    """
+    Applies the active dashboard sidebar selections to dynamically filter rows.
+    """
+    if df.empty:
+        return df
+        
+    # 1. Category Filter (Multi-Select)
+    if selected_provinces:
+        df = df[df['Province'].isin(selected_provinces)]
+        
+    # 2. Numerical Range Filter (Year Slider)
+    df = df >= year_range) & (df <= year_range[1])]
+    
+    # 3. Numerical Range Filter (Rainfall Slider)
+    df = df >= rainfall_range) & (df <= rainfall_range[1])]
+    
     return df
-
-
-def apply_filters(df, date_range=None, subreddits=None, sentiments=None,
-                  topics=None, age_groups=None, genders=None,
-                  score_range=None, search_text=None):
-    """Apply all sidebar filters and return filtered dataframe."""
-    filtered = df.copy()
-
-    if date_range and len(date_range) == 2:
-        start, end = pd.Timestamp(date_range[0]), pd.Timestamp(date_range[1])
-        filtered = filtered[(filtered["created_utc"] >= start) & (filtered["created_utc"] <= end)]
-
-    if subreddits:
-        filtered = filtered[filtered["subreddit"].isin(subreddits)]
-
-    if sentiments:
-        filtered = filtered[filtered["sentiment"].isin(sentiments)]
-
-    if topics:
-        filtered = filtered[filtered["topic"].isin(topics)]
-
-    if age_groups:
-        filtered = filtered[filtered["age_group"].isin(age_groups)]
-
-    if genders:
-        filtered = filtered[filtered["gender"].isin(genders)]
-
-    if score_range:
-        filtered = filtered[(filtered["score"] >= score_range[0]) & (filtered["score"] <= score_range[1])]
-
-    if search_text and search_text.strip():
-        mask = filtered["title"].str.contains(search_text.strip(), case=False, na=False)
-        filtered = filtered[mask]
-
-    return filtered
